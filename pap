@@ -1,0 +1,71 @@
+#!/bin/bash
+GREEN='\e[0;32m'
+YELLOW='\e[1;33m'
+RED='\e[1;31m'
+END='\e[0m'
+RED()
+{
+	echo -e  "${RED}$1${END}"
+}
+
+GREEN()
+{
+	echo -e  "${GREEN}$1${END}"
+}
+
+YELLOW()
+{
+    echo -e  "${YELLOW}$1${END}"
+}
+
+if [ $# != 2 ];then
+	echo usage: pap [src_path] [patch_path]
+	echo example: pap ./alps/ ~/debug/N08735B_git/LF502/alps/
+	exit
+fi
+
+cd $1
+PATCH_PATH=`pwd`
+cd ->>/dev/null
+cd $2
+SRC_PATH=`pwd`
+cd ->>/dev/null
+
+cd $SRC_PATH
+for i in `find $PATCH_PATH`
+do
+    
+    if [ -f $i ];then   
+        if [ -e $SRC_PATH/${i##*alps/} ];then
+            NUM=`git log --pretty=format:"%H"  ${i##*alps/} |  sort -u | wc -l`
+            if [ "$NUM" != "1" -a "$NUM" != "0" ];then
+                NUM_LOG=`git log --pretty=format:"%s" $SRC_PATH/${i##*alps/} | sort -u | wc -l`    
+                NUM_MTK=`git log --pretty=format:"%s" $SRC_PATH/${i##*alps/} | grep   "For_joyasz8735b_3tb_n_alps-mp" | wc -l`
+                let RESULT=NUM_LOG-NUM_MTK
+                if [ $RESULT != 1 ];then
+                    RED "MM: "$i""
+                else
+                    cp -rpf $i $SRC_PATH/${i##*alps/}
+                fi  
+            else
+                cp $i $SRC_PATH/${i##*alps/}
+            fi
+        else
+           #git log --pretty=format:"%H" ${i##*alps/}  | grep  -wq "tar.gz" | sort -u | wc -l 
+           YELLOW "AA: "$i"" 
+           temp=${i##*alps/}
+           #echo cp $i $SRC_PATH/${temp%/*}
+		   if [ ! -e $SRC_PATH/${temp%/*} ];then
+			mkdir -p $SRC_PATH/${temp%/*}
+		   fi
+           cp -rfp $i $SRC_PATH/${temp%/*}
+        fi
+   fi
+done
+cd --> /dev/null
+
+
+
+
+
+

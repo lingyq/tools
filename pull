@@ -1,0 +1,95 @@
+#!/bin/bash
+###########################################################################################################
+OK='\e[0;32m'
+ERROR='\e[1;31m'
+END='\e[0m'
+ERROR()
+{
+    echo -e  "${ERROR} $1 ${END}"
+}
+
+OK()
+{
+    echo -e  "${OK} $1 ${END}"
+}
+###########################################################################################################
+ALL_PROJECT="l18312cw_git l18127_git l18321_git l18321G_git l18735_git l18163_git l18163s_git l18312cw_modem l18321G_modem l18735_modem M08312CW_git M08127_git M08163_git M08321_git M08735_git M08783_git M08783T_git M08321_modem M08735_modem N08735B_git"
+
+if [ -e .git ];then
+	OK "This dir have a .git floder, delete ? (y/n)"
+	read CMD
+	if [ "$CMD" = "y" ];then
+		rm .git -rf
+	else
+		exit 1
+	fi
+fi
+
+function showRocoProjectMenu(){
+	j=1
+	for choosea in $ALL_PROJECT
+	do
+		OK "$j.	$choosea"
+		j=$(($j+1))
+	done
+}
+
+function selectRocoProject()
+{
+	OK "Please input your choice......................:"
+    read ROCO_PROJECT
+    k=1
+	for chooseb in $ALL_PROJECT
+	do
+		if [ "$ROCO_PROJECT" == "$k" ];then
+        	tmp=$chooseb
+        fi
+		k=$(($k+1))
+	done
+
+    if [ -e $tmp ];then
+        ERROR "Invailde input"
+        exit 1
+    fi
+
+}
+
+function makeBranch(){
+	OK "Do you want to make branch?(y/n)"
+	read cmd
+	if [ "$cmd" = "y" ];then
+		OK "your branch name..........................:"
+		read yourbranch
+		fetchSource
+	else
+		fetchSource
+	fi
+}
+
+function fetchSource(){
+	git clone git@192.168.122.239:$tmp
+	if [ "$yourbranch" ];then
+		cd $tmp
+		ROCO_BRANCHNAME=`git branch | awk '{if(match($1,"*")){print $2}}'` 
+		git checkout -b "$yourbranch" $ROCO_BRANCHNAME
+	fi
+	gitIgnore	
+}
+
+function gitIgnore(){
+	str1=`expr substr $tmp 1 2`
+	str2=${tmp##*_}
+	echo "$str1========$str2"
+	if [ $str1 = "M0" ];then
+		if [ ! $str2 = "modem" ];then
+			cd $tmp/
+			echo "==========start==============="
+			git update-index --assume-unchanged  prebuilts/python/linux-x86/2.7.5/lib/python2.7/stat.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/UserDict.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/_abcoll.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/_sysconfigdata.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/_weakrefset.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/abc.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/codecs.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/copy_reg.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/distutils/__init__.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/distutils/errors.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/distutils/sysconfig.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/encodings/__init__.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/encodings/aliases.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/encodings/utf_8.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/genericpath.pyc  prebuilts/python/linux-x86/2.7.5/lib/python2.7/getopt.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/linecache.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/os.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/posixpath.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/re.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/site.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/sre_compile.pyc  prebuilts/python/linux-x86/2.7.5/lib/python2.7/sre_constants.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/sre_parse.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/string.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/sysconfig.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/traceback.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/types.pyc prebuilts/python/linux-x86/2.7.5/lib/python2.7/warnings.pyc
+			echo "==========end================="
+		fi
+	fi
+}
+
+showRocoProjectMenu
+selectRocoProject
+makeBranch
